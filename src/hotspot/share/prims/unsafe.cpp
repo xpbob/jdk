@@ -344,9 +344,11 @@ UNSAFE_ENTRY(jlong, Unsafe_AllocateMemory0(JNIEnv *env, jobject unsafe, jlong si
   jlong addr = addr_to_java(x);
 
   EventUnsafeAllocation event;
-  event.set_allocationSize(sz);
-  event.set_addr(addr);
-  event.commit();
+  if (event.should_commit()) {
+    event.set_allocationSize(sz);
+    event.set_addr(addr);
+    event.commit();
+  }
   return addr;
 } UNSAFE_END
 
@@ -360,10 +362,12 @@ UNSAFE_ENTRY(jlong, Unsafe_ReallocateMemory0(JNIEnv *env, jobject unsafe, jlong 
   jlong reallocAddr = addr_to_java(x);
 
   EventUnsafeReallocate event;
-  event.set_allocationSize(sz);
-  event.set_freeAddr(addr);
-  event.set_allocAddr(reallocAddr);
-  event.commit();
+  if (event.should_commit()) {
+    event.set_allocationSize(sz);
+    event.set_freeAddr(addr);
+    event.set_allocAddr(reallocAddr);
+    event.commit();
+  }
 
   return reallocAddr;
 } UNSAFE_END
@@ -374,8 +378,10 @@ UNSAFE_ENTRY(void, Unsafe_FreeMemory0(JNIEnv *env, jobject unsafe, jlong addr)) 
   os::free(p);
 
   EventUnsafeFreeMemory event;
-  event.set_addr(addr);
-  event.commit();
+  if (event.should_commit()) {
+    event.set_addr(addr);
+    event.commit();
+  }
 } UNSAFE_END
 
 UNSAFE_ENTRY(void, Unsafe_SetMemory0(JNIEnv *env, jobject unsafe, jobject obj, jlong offset, jlong size, jbyte value)) {
